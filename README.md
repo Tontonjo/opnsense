@@ -16,8 +16,10 @@ Scripts and files usefull for Opensense
 [bobbyearl](https://github.com/bobbyearl/pfSense-DHCP-leases-widget/blob/master/DHCP_leases.widget.php)  
 ### Usage:
 - Put [dhcp_leases.widget.php](https://github.com/Tontonjo/opnsense/blob/main/usr/local/www/widgets/widgets/dhcp_leases.widget.php) in /usr/local/www/widgets/widgets/
-- ```pkg install wget```
-- ```wget -qO /usr/local/www/widgets/widgets/dhcp_leases.widget.php https://raw.githubusercontent.com/Tontonjo/opnsense/main/usr/local/www/widgets/widgets/dhcp_leases.widget.php```
+```shell
+pkg install wget```
+```shell
+wget -qO /usr/local/www/widgets/widgets/dhcp_leases.widget.php https://raw.githubusercontent.com/Tontonjo/opnsense/main/usr/local/www/widgets/widgets/dhcp_leases.widget.php```
 - Add widget trough Opnsense GUI
 
 ### To do: But i dont know how:
