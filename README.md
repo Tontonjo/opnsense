@@ -14,7 +14,7 @@ Scripts and files usefull for Opensense
 #### Sources:  
 [jbaconsult](https://github.com/jbaconsult/opnsense_stuff/blob/main/dhcp_leases.widget.php)  
 [bobbyearl](https://github.com/bobbyearl/pfSense-DHCP-leases-widget/blob/master/DHCP_leases.widget.php)  
-### Usage:
+### Installation:
 - Put [dhcp_leases.widget.php](https://github.com/Tontonjo/opnsense/blob/main/usr/local/www/widgets/widgets/dhcp_leases.widget.php) in /usr/local/www/widgets/widgets/
 ```shell
 pkg install wget
