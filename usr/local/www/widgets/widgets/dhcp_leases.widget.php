@@ -34,7 +34,8 @@
  * https://github.com/bobbyearl/pfSense-DHCP-leases-widget/blob/master/DHCP_leases.widget.php
  * https://raw.githubusercontent.com/jbaconsult/opnsense_stuff/main/dhcp_leases.widget.php
  * Fixed by Tonton Jo - https://www.youtube.com/c/tonton_jo
- * 2023 08 13: Added Mac address Row
+ * Version 1.1: Added Mac address Row
+ * Version 1.2: Now skip "expired DHCP leases! yay
  */
 
 require_once("guiconfig.inc");
@@ -269,6 +270,9 @@ $leasesfile = "{$g['dhcpd_chroot_path']}/var/dhcpd/var/db/dhcpd.leases";
   <tbody>
 <?php
 foreach ($leases as $data):
+	if (($data['act'] == "expired")) {
+		continue;
+	}
 	if (($data['act'] == "active") || ($data['act'] == "static") || ($_GET['all'] == 1)) {
 		if ($data['act'] != "active" && $data['act'] != "static") {
 			$fspans = "<span class=\"gray\">";
