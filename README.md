@@ -25,5 +25,5 @@ wget -qO /usr/local/www/widgets/widgets/dhcp_leases.widget.php https://raw.githu
 - Add widget trough Opnsense GUI
 
 ### To do: But i dont know how:
-- Mask expired Leases (wich i find useless)
-- Add a MAC address row wich can be usefull to identify a device
+- DONE: Mask expired Leases (wich i find useless)
+- DONE: Add a MAC address row wich can be usefull to identify a device
