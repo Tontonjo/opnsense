@@ -33,7 +33,8 @@
  * This script is based on parts on the dhcp_status.php and the script by Bobby Earl and DerMozart "jbaconsult"
  * https://github.com/bobbyearl/pfSense-DHCP-leases-widget/blob/master/DHCP_leases.widget.php
  * https://raw.githubusercontent.com/jbaconsult/opnsense_stuff/main/dhcp_leases.widget.php
- * Fixed by Tonton Jo
+ * Fixed by Tonton Jo - https://www.youtube.com/c/tonton_jo
+ * 2023 08 13: Added Mac address Row
  */
 
 require_once("guiconfig.inc");
@@ -260,6 +261,7 @@ $leasesfile = "{$g['dhcpd_chroot_path']}/var/dhcpd/var/db/dhcpd.leases";
     <tr>
       <th><?=gettext("IP address"); ?></th>
       <th><?=gettext("Hostname"); ?></th>
+	  <th><?=gettext("MAC"); ?></th>
       <th><?=gettext("Lease type"); ?></th>
       <th><?=gettext("Status"); ?></th>
     </tr>
@@ -302,6 +304,7 @@ foreach ($leases as $data):
         <tr>
             <td><?=$data['ip'];?></td>
             <td><?=$data['hostname'];?></td>
+			<td><?=$data['mac'];?></td>
             <td><?=$data['act'];?></td>
             <td>
                 <i class="fa fa-<?=$data['online']=='online' ? 'signal' : 'ban';?>" title="<?=$data['online'];?>" data-toggle="tooltip"></i>
