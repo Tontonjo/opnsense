@@ -30,12 +30,14 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  *
+ * Fixed by Tonton Jo - https://www.youtube.com/c/tonton_jo
  * This script is based on parts on the dhcp_status.php and the script by Bobby Earl and DerMozart "jbaconsult"
  * https://github.com/bobbyearl/pfSense-DHCP-leases-widget/blob/master/DHCP_leases.widget.php
  * https://raw.githubusercontent.com/jbaconsult/opnsense_stuff/main/dhcp_leases.widget.php
- * Fixed by Tonton Jo - https://www.youtube.com/c/tonton_jo
+ * 
  * Version 1.1: Added Mac address Row
  * Version 1.2: Now skip "expired DHCP leases! yay
+ * Version 1.3: Removed unused variable, removed useless part of variable definition
  */
 
 require_once("guiconfig.inc");
@@ -55,8 +57,7 @@ function remove_duplicate($array, $field)
     return $new;
 }
 
-$interfaces = legacy_config_get_interfaces(array('virtual' => false));
-$leasesfile = "{$g['dhcpd_chroot_path']}/var/dhcpd/var/db/dhcpd.leases";
+$leasesfile = "/var/dhcpd/var/db/dhcpd.leases";
 
     $awk = "/usr/bin/awk";
     /* this pattern sticks comments into a single array item */
