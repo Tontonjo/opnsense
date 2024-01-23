@@ -13,5 +13,9 @@ cscli parsers install crowdsecurity/whitelists
 ```ssh
 cat "/usr/local/etc/crowdsec/hub/parsers/s02-enrich/crowdsecurity/whitelists.yaml"
 ```
+- Reload the configuration
+```ssh
+service crowdsec reload
+```  
 
 ## Management
