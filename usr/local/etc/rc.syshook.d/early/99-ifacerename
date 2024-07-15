@@ -1,0 +1,7 @@
+#!/bin/sh
+
+# https://docs.opnsense.org/development/backend/autorun.html
+
+echo "- Renaming interfaces"
+ifconfig $OLDNAME1 name $NEWNAME1
+ifconfig $OLDNAME2 name $NEWNAME2
