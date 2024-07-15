@@ -14,7 +14,7 @@ make it executable
 chmod +x "/usr/local/etc/rc.syshook.d/early/99-ifacerename"
 ```
 
-Edit your configuration.xml
+Edit your configuration.xml in "/conf/config.xml"
 - I'd suggest you to use a find and remplace tool to find every mention in the config file.
 
 Save - reboot - check
