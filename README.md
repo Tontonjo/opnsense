@@ -11,6 +11,9 @@ Scripts and files usefull for Opensense
 [![Express VPN](https://badgen.net/badge/Express%20VPN/Affiliated%20link?icon=K)](https://www.xvuslink.com/?a_fid=TontonJo)  
 
 ### DHCP Leases Widget  
+
+Not working anymore on > 24.6  
+
 #### Sources:  
 [jbaconsult](https://github.com/jbaconsult/opnsense_stuff/blob/main/dhcp_leases.widget.php)  
 [bobbyearl](https://github.com/bobbyearl/pfSense-DHCP-leases-widget/blob/master/DHCP_leases.widget.php)  
