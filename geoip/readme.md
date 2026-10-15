@@ -11,8 +11,7 @@ This database is built exclusively from the primary sources: the public statisti
 > It has no link with MaxMind: no MaxMind data, account, license key, software or service is used at any stage.
 > The "GeoLite2" file names are kept only because OPNsense expects this naming convention. They describe a file layout, not the origin of the data.
 
-This file is not yet regulary updated
-
+The file is [build daily](https://github.com/Tontonjo/opnsense/blob/main/.github/workflows/update-geoip.yml) from sources and is [available here](https://github.com/Tontonjo/opnsense/releases/download/geoip/GeoLite2-Country-CSV.zip)
 
 
 ## Guide d'utilisation
