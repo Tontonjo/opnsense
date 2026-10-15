@@ -3,9 +3,10 @@
     Builds a GeoLite2-Country-CSV compatible zip for the OPNsense GeoIP alias feature.
 
 .DESCRIPTION
-    Version: 1.1.0
+    Version: 1.1.1
 
     Changelog:
+        1.1.1  Added -o as a short alias of -OutputDirectory (same syntax as the bash version).
         1.1.0  Added -TestIp to look up the country of an IPv4 or IPv6 address in a generated zip.
         1.0.0  Initial version: builds the zip from RIR statistics.
 
@@ -24,6 +25,7 @@
 
 .PARAMETER OutputDirectory
     Build mode: folder where the zip file is written. Defaults to the script folder.
+    Short alias: -o
 
 .PARAMETER TestIp
     Lookup mode: IPv4 or IPv6 address to look up in an existing zip. No download is made.
@@ -35,12 +37,16 @@
     .\Build-OpnsenseGeoIpZip.ps1 -OutputDirectory C:\GeoIP
 
 .EXAMPLE
+    .\Build-OpnsenseGeoIpZip.ps1 -o C:\GeoIP
+
+.EXAMPLE
     .\Build-OpnsenseGeoIpZip.ps1 -TestIp 8.8.8.8 -ZipPath C:\GeoIP\GeoLite2-Country-CSV.zip
 #>
 
 [CmdletBinding(DefaultParameterSetName = 'Build')]
 param(
     [Parameter(ParameterSetName = 'Build')]
+    [Alias('o')]
     [string]$OutputDirectory = $PSScriptRoot,
 
     [Parameter(ParameterSetName = 'Lookup', Mandatory = $true)]
