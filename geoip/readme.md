@@ -1,7 +1,5 @@
 # Free and self-built GEOIP Database
- 
-Version: 1.1.0
-Related script: `Build-OpnsenseGeoIpZip.ps1` (version 1.1.0)
+
 
 <img width="440" height="175" alt="image" src="https://github.com/user-attachments/assets/eaf4c7a7-616e-4f1a-b15f-582be762ea7c" />
  
