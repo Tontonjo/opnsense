@@ -12,7 +12,7 @@
 
 <img width="440" height="175" alt="image" src="https://github.com/user-attachments/assets/eaf4c7a7-616e-4f1a-b15f-582be762ea7c" />
  
-This document describes how the zip produced by `Build-OpnsenseGeoIpZip.ps1` is built and how OPNsense reads it for GeoIP aliases.
+This document describes how the zip produced by `geoizip.ps1` is built and how OPNsense reads it for GeoIP aliases.
 
 This database is built exclusively from the primary sources: the public statistics files published by the five Regional Internet Registries (ARIN, RIPE NCC, APNIC, LACNIC, AFRINIC).
  
@@ -26,14 +26,14 @@ The file is [build daily](https://github.com/Tontonjo/opnsense/blob/main/.github
 ## Guide d'utilisation
 
 **PowerShell (Windows)**
-- Générer le zip : `.\Build-OpnsenseGeoIpZip.ps1 -OutputDirectory C:\GeoIP`
-- Tester une IP : `.\Build-OpnsenseGeoIpZip.ps1 -TestIp 8.8.8.8 -ZipPath C:\GeoIP\GeoLite2-Country-CSV.zip`
+- Générer le zip : `.\geoizip.ps1 -OutputDirectory C:\GeoIP`
+- Tester une IP : `.\geoizip.ps1 -TestIp 8.8.8.8 -ZipPath C:\GeoIP\GeoLite2-Country-CSV.zip`
 - Si l'exécution est bloquée : `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass`
 
 **Bash (Linux)**
-- Prérequis : `curl`, `awk`, `zip`, `unzip`, puis `chmod +x build-opnsense-geoip-zip.sh`
-- Générer le zip : `./build-opnsense-geoip-zip.sh -o /var/www/geoip`
-- Tester une IP : `./build-opnsense-geoip-zip.sh -t 8.8.8.8 -z /var/www/geoip/GeoLite2-Country-CSV.zip`
+- Prérequis : `curl`, `awk`, `zip`, `unzip`, puis `chmod +x geoizip.sh`
+- Générer le zip : `./geoizip.sh -o /var/www/geoip`
+- Tester une IP : `./geoizip.sh -t 8.8.8.8 -z /var/www/geoip/GeoLite2-Country-CSV.zip`
 
 **OPNsense**
 1. Publiez `GeoLite2-Country-CSV.zip` sur un serveur web accessible par le pare-feu.
