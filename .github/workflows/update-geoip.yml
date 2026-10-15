@@ -1,0 +1,64 @@
+# update-geoip.yml
+# Version: 1.0.0
+#
+# Rebuilds the GeoIP zip every day from the RIR statistics files (geoip/geoizip.sh)
+# and publishes it as an asset of the rolling "geoip" GitHub release.
+#
+# Stable download URL for OPNsense (Firewall > Aliases > GeoIP settings):
+#   https://github.com/Tontonjo/opnsense/releases/download/geoip/GeoLite2-Country-CSV.zip
+#
+# Changelog:
+#   1.0.0  Initial version: daily build, sanity check, upload to the "geoip" release.
+
+name: Update GeoIP database
+
+on:
+  schedule:
+    - cron: "17 4 * * *"   # every day at 04:17 UTC, after the RIR daily publications
+  workflow_dispatch:         # allows a manual run from the Actions tab
+
+permissions:
+  contents: write            # required to create and update the release
+
+concurrency:
+  group: update-geoip
+  cancel-in-progress: false
+
+env:
+  RELEASE_TAG: geoip
+  ZIP_NAME: GeoLite2-Country-CSV.zip
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build GeoIP zip
+        run: bash geoip/geoizip.sh -o "$RUNNER_TEMP/out"
+
+      - name: Sanity check
+        # Stops the workflow before publishing if the zip is incomplete,
+        # so OPNsense keeps the previous valid version.
+        run: |
+          zip_path="$RUNNER_TEMP/out/$ZIP_NAME"
+          ipv4_lines=$(unzip -p "$zip_path" '*Blocks-IPv4.csv' | wc -l)
+          ipv6_lines=$(unzip -p "$zip_path" '*Blocks-IPv6.csv' | wc -l)
+          echo "IPv4 blocks: $ipv4_lines / IPv6 blocks: $ipv6_lines"
+          [ "$ipv4_lines" -gt 100000 ] || { echo "Error: too few IPv4 blocks."; exit 1; }
+          [ "$ipv6_lines" -gt 50000 ]  || { echo "Error: too few IPv6 blocks."; exit 1; }
+          bash geoip/geoizip.sh -t 8.8.8.8 -z "$zip_path" | tee lookup.txt
+          grep -q "CountryCode : US" lookup.txt || { echo "Error: unexpected lookup result."; exit 1; }
+
+      - name: Publish to release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          notes="Daily GeoIP database built from the RIR statistics files. Last update: $(date -u '+%Y-%m-%d %H:%M UTC')."
+          if ! gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release create "$RELEASE_TAG" --title "GeoIP database" --notes "$notes" --latest=false
+          fi
+          gh release upload "$RELEASE_TAG" "$RUNNER_TEMP/out/$ZIP_NAME" --clobber
+          gh release edit "$RELEASE_TAG" --notes "$notes"
