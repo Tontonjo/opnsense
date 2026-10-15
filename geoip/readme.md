@@ -1,4 +1,4 @@
-# GeoLite2-Country-CSV.zip: file format and build process
+# Free and self-built GEOIP Database
  
 Version: 1.1.0
 Related script: `Build-OpnsenseGeoIpZip.ps1` (version 1.1.0)
