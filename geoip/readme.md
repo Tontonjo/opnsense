@@ -12,3 +12,5 @@ This database is built exclusively from the primary sources: the public statisti
 > The "GeoLite2" file names are kept only because OPNsense expects this naming convention. They describe a file layout, not the origin of the data.
 
 This file is not yet regulary updated
+
+<img width="881" height="351" alt="image" src="https://github.com/user-attachments/assets/eaf4c7a7-616e-4f1a-b15f-582be762ea7c" />
