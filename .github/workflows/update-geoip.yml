@@ -1,5 +1,5 @@
 # update-geoip.yml
-# Version: 1.0.0
+# Version: 1.0.1
 #
 # Rebuilds the GeoIP zip every day from the RIR statistics files (geoip/geoizip.sh)
 # and publishes it as an asset of the rolling "geoip" GitHub release.
@@ -8,6 +8,7 @@
 #   https://github.com/Tontonjo/opnsense/releases/download/geoip/GeoLite2-Country-CSV.zip
 #
 # Changelog:
+#   1.0.1  actions/checkout v4 -> v5 (Node.js 24 runtime, removes the Node.js 20 deprecation warning).
 #   1.0.0  Initial version: daily build, sanity check, upload to the "geoip" release.
 
 name: Update GeoIP database
@@ -34,7 +35,7 @@ jobs:
     timeout-minutes: 30
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Build GeoIP zip
         run: bash geoip/geoizip.sh -o "$RUNNER_TEMP/out"
