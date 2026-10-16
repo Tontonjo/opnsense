@@ -27,7 +27,7 @@ The file is [build daily](https://github.com/Tontonjo/opnsense/blob/main/.github
 Geo IP lists can be rather large, especially when using IPv6. When creating rules, always try to minimize the number of addresses needed in your selection. A selection of all countries in the world not being the Netherlands can usually be rewritten as only addresses from the Netherlands for example.
 
 # Plugin
-A plugin is available here, not tested.
+A plugin for opnsense is available here, not tested.
 https://github.com/Tontonjo/opnsense-os-rir-geoip
 
 ## Guide d'utilisation
