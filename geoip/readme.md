@@ -12,7 +12,7 @@
 
 <img width="440" height="175" alt="image" src="https://github.com/user-attachments/assets/eaf4c7a7-616e-4f1a-b15f-582be762ea7c" /> <img width="312" height="175" alt="image" src="https://github.com/user-attachments/assets/dc16df01-9a59-4f8a-bc44-9f1750a7b26c" />
 
- 
+
 This document describes how the zip produced by `geoizip.ps1` is built and how OPNsense reads it for GeoIP aliases.
 
 This database is built exclusively from the primary sources: the public statistics files published by the five Regional Internet Registries (ARIN, RIPE NCC, APNIC, LACNIC, AFRINIC).
@@ -25,6 +25,10 @@ The file is [build daily](https://github.com/Tontonjo/opnsense/blob/main/.github
 
 [Protip](https://docs.opnsense.org/manual/aliases.html#aliases):
 Geo IP lists can be rather large, especially when using IPv6. When creating rules, always try to minimize the number of addresses needed in your selection. A selection of all countries in the world not being the Netherlands can usually be rewritten as only addresses from the Netherlands for example.
+
+# Plugin
+A plugin is available here, not tested.
+https://github.com/Tontonjo/opnsense-os-rir-geoip
 
 ## Guide d'utilisation
 
