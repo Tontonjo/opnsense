@@ -1,4 +1,4 @@
-# Free and self-built GEOIP Database
+# Free and self-built GEOIP Database for Opnsense (maxmind format)
 
 ## Tonton Jo  
 ### Join the community:
@@ -23,6 +23,8 @@ This database is built exclusively from the primary sources: the public statisti
 
 The file is [build daily](https://github.com/Tontonjo/opnsense/blob/main/.github/workflows/update-geoip.yml) from sources and is [available here](https://github.com/Tontonjo/opnsense/releases/download/geoip/GeoLite2-Country-CSV.zip)
 
+[Protip](https://docs.opnsense.org/manual/aliases.html#aliases):
+Geo IP lists can be rather large, especially when using IPv6. When creating rules, always try to minimize the number of addresses needed in your selection. A selection of all countries in the world not being the Netherlands can usually be rewritten as only addresses from the Netherlands for example.
 
 ## Guide d'utilisation
 
