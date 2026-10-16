@@ -15,7 +15,7 @@ name: Update GeoIP database
 
 on:
   schedule:
-    - cron: "17 4 * * *"   # every day at 04:17 UTC, after the RIR daily publications
+    - cron: "04 4 * * *"   # every day at 04:17 UTC, after the RIR daily publications
   workflow_dispatch:         # allows a manual run from the Actions tab
 
 permissions:
