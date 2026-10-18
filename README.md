@@ -10,8 +10,7 @@ Scripts and files usefull for Opensense
 [![Infomaniak](https://badgen.net/badge/Infomaniak/Affiliated%20link?icon=K)](https://www.infomaniak.com/goto/fr/home?utm_term=6151f412daf35)
 [![Express VPN](https://badgen.net/badge/Express%20VPN/Affiliated%20link?icon=K)](https://www.xvuslink.com/?a_fid=TontonJo)  
 
-### [DHCP Leases Widget  ](https://github.com/Tontonjo/opnsense/tree/main/os-dhcp-dashboard)
+## GeoIP Database
+IP address data powered by IPLocate.io
 
-### To do: But i dont know how:
-- DONE: Mask expired Leases (wich i find useless)
-- DONE: Add a MAC address row wich can be usefull to identify a device
+### [DHCP Leases Widget  ](https://github.com/Tontonjo/opnsense/tree/main/os-dhcp-dashboard)
