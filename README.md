@@ -12,11 +12,6 @@ Scripts and files usefull for Opensense
 
 ### DHCP Leases Widget  
 
-Not working anymore on > 24.6  
-
-#### Sources:  
-[jbaconsult](https://github.com/jbaconsult/opnsense_stuff/blob/main/dhcp_leases.widget.php)  
-[bobbyearl](https://github.com/bobbyearl/pfSense-DHCP-leases-widget/blob/master/DHCP_leases.widget.php)  
 ### Installation:
 - Put [dHCP_leases.widget.php](https://github.com/Tontonjo/opnsense/blob/main/usr/local/www/widgets/widgets/dHCP_leases.widget.php) in /usr/local/www/widgets/widgets/
 ```shell
