@@ -1,6 +1,6 @@
 <!--
     os-dhcp-dashboard - widget metadata
-    Version: 1.0.0
+    Version: 1.1.0
 
     No endpoint is listed on purpose: the widget combines several optional
     backends (ISC plugin, Kea, Dnsmasq). Listing them would hide the widget
@@ -18,6 +18,8 @@
             <ipaddress>IP address</ipaddress>
             <hostname>Hostname</hostname>
             <mac>MAC address</mac>
+            <manufacturer>Manufacturer</manufacturer>
+            <randommac>Random MAC (private)</randommac>
             <interface>Interface</interface>
             <leasetype>Lease type</leasetype>
             <source>Server</source>

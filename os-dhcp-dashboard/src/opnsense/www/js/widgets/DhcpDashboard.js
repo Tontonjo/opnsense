@@ -1,6 +1,6 @@
 /*
  * os-dhcp-dashboard - DHCP leases widget for the OPNsense dashboard
- * Version: 1.0.0
+ * Version: 1.1.0
  *
  * Shows the active DHCP leases of every running DHCP server in one table:
  *   - ISC DHCP (v4 / v6)  : core up to 25.x, os-isc-dhcp plugin since 26.1
@@ -37,16 +37,23 @@
  */
 
 /*
+ * Changelog
+ *   1.1.0  Silent backend probing (no more "Endpoint not found" popup when a backend is absent),
+ *          sortable columns (click a header), manufacturer column (MAC vendor lookup)
+ *   1.0.0  Initial release
+ *
  * Normalized lease record used by the renderer:
  * {
- *   ip:       string   IPv4 or IPv6 address
- *   family:   'v4'|'v6'
- *   hostname: string
- *   mac:      string
- *   iface:    string   interface description
- *   type:     'dynamic'|'static'
- *   source:   'ISC'|'Kea'|'Dnsmasq'
- *   online:   true|false|null (null = unknown, resolved through ARP/NDP)
+ *   ip:           string   IPv4 or IPv6 address
+ *   family:       'v4'|'v6'
+ *   hostname:     string
+ *   mac:          string
+ *   manufacturer: string   vendor from the OUI database, or the "random MAC" label
+ *   randomMac:    boolean  true when the MAC is locally administered (privacy / random MAC)
+ *   iface:        string   interface description
+ *   type:         'dynamic'|'static'
+ *   source:       'ISC'|'Kea'|'Dnsmasq'
+ *   online:       true|false|null (null = unknown, resolved through ARP/NDP)
  * }
  */
 
@@ -57,6 +64,23 @@ export default class DhcpDashboard extends BaseWidget {
         this.configChanged = false;
         // Lease lookups trigger several backend scripts, no need to poll every 10s
         this.tickTimeout = 30;
+
+        // Table columns: "optional" columns are hidden on narrow widgets
+        this.columns = [
+            { key: 'ip',           label: 'ipaddress' },
+            { key: 'hostname',     label: 'hostname' },
+            { key: 'mac',          label: 'mac' },
+            { key: 'manufacturer', label: 'manufacturer', optional: true },
+            { key: 'iface',        label: 'interface',    optional: true },
+            { key: 'type',         label: 'leasetype' },
+            { key: 'source',       label: 'source',       optional: true },
+            { key: 'online',       label: 'status',       center: true }
+        ];
+
+        // Current sort, changed by clicking a column header (kept while the page is open)
+        this.sortKey = 'ip';
+        this.sortAsc = true;
+        this.leases = [];
     }
 
     getGridOptions() {
@@ -68,35 +92,41 @@ export default class DhcpDashboard extends BaseWidget {
 
     getMarkup() {
         const t = this.translations;
+        const headers = this.columns.map(col => `
+            <th class="dd-sortable ${col.optional ? 'dd-col-optional' : ''} ${col.center ? 'text-center' : ''}"
+                data-sort="${col.key}">
+                ${t[col.label]} <i class="fa fa-fw dd-sort-icon"></i>
+            </th>`).join('');
+
         return $(`
             <div class="dhcp-dashboard" id="dhcpDashboard">
                 <style>
                     #dhcpDashboard .dd-table-wrap { overflow-x: auto; }
                     #dhcpDashboard table { margin-bottom: 0; }
                     #dhcpDashboard td, #dhcpDashboard th { white-space: nowrap; }
+                    #dhcpDashboard .dd-sortable { cursor: pointer; user-select: none; }
                     #dhcpDashboard .dd-message { padding: 10px; text-align: center; }
                     #dhcpDashboard.dd-narrow .dd-col-optional { display: none; }
-                    #dhcpDashboard.dd-very-narrow .dd-col-mac { display: none; }
                 </style>
                 <div class="dd-message" id="dhcpDashboardMessage" style="display:none;"></div>
                 <div class="dd-table-wrap" id="dhcpDashboardTableWrap" style="display:none;">
                     <table class="table table-striped table-condensed">
-                        <thead>
-                            <tr>
-                                <th>${t.ipaddress}</th>
-                                <th>${t.hostname}</th>
-                                <th class="dd-col-mac">${t.mac}</th>
-                                <th class="dd-col-optional">${t.interface}</th>
-                                <th>${t.leasetype}</th>
-                                <th class="dd-col-optional">${t.source}</th>
-                                <th class="text-center">${t.status}</th>
-                            </tr>
-                        </thead>
+                        <thead><tr>${headers}</tr></thead>
                         <tbody id="dhcpDashboardBody"></tbody>
                     </table>
                 </div>
             </div>
         `);
+    }
+
+    async onMarkupRendered() {
+        $('#dhcpDashboard').on('click', '.dd-sortable', event => {
+            const key = $(event.currentTarget).data('sort');
+            // Same column: reverse order, new column: ascending
+            this.sortAsc = (key === this.sortKey) ? !this.sortAsc : true;
+            this.sortKey = key;
+            this.renderLeases();
+        });
     }
 
     async getWidgetOptions() {
@@ -122,9 +152,7 @@ export default class DhcpDashboard extends BaseWidget {
 
     onWidgetResize(elem, width, height) {
         // Hide the less important columns on small widgets
-        $('#dhcpDashboard')
-            .toggleClass('dd-narrow', width < 520)
-            .toggleClass('dd-very-narrow', width < 380);
+        $('#dhcpDashboard').toggleClass('dd-narrow', width < 620);
         return true;
     }
 
@@ -147,7 +175,7 @@ export default class DhcpDashboard extends BaseWidget {
 
         const leases = activeBackends.flat();
         await this.resolveOnlineStatus(leases);
-        leases.sort((a, b) => DhcpDashboard.ipSortKey(a.ip).localeCompare(DhcpDashboard.ipSortKey(b.ip)));
+        leases.forEach(lease => this.resolveManufacturer(lease));
 
         if (!this.dataChanged('leases', leases) && !this.configChanged) {
             return;
@@ -159,7 +187,8 @@ export default class DhcpDashboard extends BaseWidget {
             return;
         }
 
-        this.renderLeases(leases);
+        this.leases = leases;
+        this.renderLeases();
     }
 
     /* ---------- Backend fetchers ---------- */
@@ -174,7 +203,7 @@ export default class DhcpDashboard extends BaseWidget {
             return null;
         }
 
-        const response = await this.safeAjax(`/api/${service}/leases/search_lease`, JSON.stringify({ rowCount: -1 }), 'POST');
+        const response = await this.safeAjax(`/api/${service}/leases/search_lease`, { rowCount: -1 });
         return (response?.rows ?? [])
             .filter(row => row.state === 'active' && row.address)
             .map(row => ({
@@ -182,6 +211,7 @@ export default class DhcpDashboard extends BaseWidget {
                 family: family,
                 hostname: row.hostname ?? '',
                 mac: row.mac ?? '',
+                manufacturer: row.man ?? '',
                 iface: row.if_descr ?? '',
                 type: row.type === 'static' ? 'static' : 'dynamic',
                 source: 'ISC',
@@ -199,7 +229,7 @@ export default class DhcpDashboard extends BaseWidget {
         }
 
         const endpoint = family === 'v4' ? 'leases4' : 'leases6';
-        const response = await this.safeAjax(`/api/kea/${endpoint}/search`, JSON.stringify({ rowCount: -1 }), 'POST');
+        const response = await this.safeAjax(`/api/kea/${endpoint}/search`, { rowCount: -1 });
         return (response?.rows ?? [])
             .filter(row => Number(row.state) === 0 && row.address)
             .map(row => ({
@@ -207,6 +237,7 @@ export default class DhcpDashboard extends BaseWidget {
                 family: family,
                 hostname: (row.hostname ?? '').replace(/\.$/, ''),
                 mac: row.hwaddr ?? '',
+                manufacturer: row.mac_info ?? '',
                 iface: row.if_descr ?? '',
                 type: row.lease_type === 'static' ? 'static' : 'dynamic',
                 source: 'Kea',
@@ -223,7 +254,7 @@ export default class DhcpDashboard extends BaseWidget {
             return null;
         }
 
-        const response = await this.safeAjax('/api/dnsmasq/leases/search', JSON.stringify({ rowCount: -1 }), 'POST');
+        const response = await this.safeAjax('/api/dnsmasq/leases/search', { rowCount: -1 });
         const now = Math.floor(Date.now() / 1000);
         return (response?.rows ?? [])
             .filter(row => row.address && (Number(row.expire) === 0 || Number(row.expire) > now))
@@ -232,6 +263,7 @@ export default class DhcpDashboard extends BaseWidget {
                 family: row.address.includes(':') ? 'v6' : 'v4',
                 hostname: row.hostname === '*' ? '' : (row.hostname ?? ''),
                 mac: row.hwaddr ?? '',
+                manufacturer: row.mac_info ?? '',
                 iface: row.if_descr ?? '',
                 type: row.lease_type === 'static' ? 'static' : 'dynamic',
                 source: 'Dnsmasq',
@@ -243,9 +275,10 @@ export default class DhcpDashboard extends BaseWidget {
     /**
      * Kea and Dnsmasq do not report presence: look the address up in the ARP (v4) or NDP (v6) table.
      * Tables are only fetched when needed. If not readable, the status stays unknown (null).
+     * ARP/NDP entries also carry a manufacturer, used to fill the gaps of the lease data.
      */
     async resolveOnlineStatus(leases) {
-        const pending = leases.filter(lease => lease.online === null);
+        const pending = leases.filter(lease => lease.online === null || !lease.manufacturer);
         if (pending.length === 0) {
             return;
         }
@@ -257,24 +290,89 @@ export default class DhcpDashboard extends BaseWidget {
             needNdp ? this.safeAjax('/api/diagnostics/interface/get_ndp') : null
         ]);
 
-        const toIpSet = (table, skipExpired) => Array.isArray(table)
-            ? new Set(table.filter(entry => !(skipExpired && entry.expired)).map(entry => String(entry.ip).toLowerCase()))
-            : null;
-        const neighbours = { v4: toIpSet(arp, true), v6: toIpSet(ndp, false) };
+        // Index neighbour tables by IP (presence) and by MAC (vendor)
+        const index = (table, skipExpired) => {
+            if (!Array.isArray(table)) {
+                return null;
+            }
+            const result = { ips: new Set(), vendors: new Map() };
+            table.forEach(entry => {
+                if (entry.manufacturer && entry.mac) {
+                    result.vendors.set(String(entry.mac).toLowerCase(), entry.manufacturer);
+                }
+                if (!(skipExpired && entry.expired)) {
+                    result.ips.add(String(entry.ip).toLowerCase());
+                }
+            });
+            return result;
+        };
+        const neighbours = { v4: index(arp, true), v6: index(ndp, false) };
 
         pending.forEach(lease => {
             const known = neighbours[lease.family];
-            if (known !== null) {
-                lease.online = known.has(lease.ip.toLowerCase());
+            if (known === null) {
+                return;
+            }
+            if (lease.online === null) {
+                lease.online = known.ips.has(lease.ip.toLowerCase());
+            }
+            if (!lease.manufacturer && lease.mac) {
+                lease.manufacturer = known.vendors.get(lease.mac.toLowerCase()) ?? '';
             }
         });
     }
 
+    /**
+     * Random / private MAC addresses (locally administered bit set) have no registered vendor:
+     * label them instead of leaving the manufacturer empty
+     */
+    resolveManufacturer(lease) {
+        lease.randomMac = false;
+        if (!lease.manufacturer && DhcpDashboard.isRandomMac(lease.mac)) {
+            lease.manufacturer = this.translations.randommac;
+            lease.randomMac = true;
+        }
+    }
+
+    /* ---------- Sorting ---------- */
+
+    compareLeases(a, b) {
+        const key = this.sortKey;
+        let result;
+
+        if (key === 'ip') {
+            result = DhcpDashboard.ipSortKey(a.ip).localeCompare(DhcpDashboard.ipSortKey(b.ip));
+        } else if (key === 'online') {
+            // online, then offline, then unknown
+            const rank = value => value === true ? 0 : (value === false ? 1 : 2);
+            result = rank(a.online) - rank(b.online);
+        } else {
+            const valueA = String(a[key] ?? '');
+            const valueB = String(b[key] ?? '');
+            // Empty values always at the end, whatever the direction
+            if (valueA === '' || valueB === '') {
+                return (valueA === '') - (valueB === '') ||
+                    DhcpDashboard.ipSortKey(a.ip).localeCompare(DhcpDashboard.ipSortKey(b.ip));
+            }
+            result = valueA.localeCompare(valueB, undefined, { numeric: true, sensitivity: 'base' });
+        }
+
+        if (!this.sortAsc) {
+            result = -result;
+        }
+        // Stable tie-break on IP address
+        return result || DhcpDashboard.ipSortKey(a.ip).localeCompare(DhcpDashboard.ipSortKey(b.ip));
+    }
+
     /* ---------- Rendering ---------- */
 
-    renderLeases(leases) {
+    renderLeases() {
         const t = this.translations;
         const esc = DhcpDashboard.escapeHtml;
+        const leases = [...this.leases].sort((a, b) => this.compareLeases(a, b));
+
+        const cell = (col, content) =>
+            `<td class="${col.optional ? 'dd-col-optional' : ''} ${col.center ? 'text-center' : ''}">${content}</td>`;
 
         const rows = leases.map(lease => {
             let statusIcon = `<i class="fa fa-question text-muted" title="${t.unknown}" data-toggle="tooltip"></i>`;
@@ -284,18 +382,24 @@ export default class DhcpDashboard extends BaseWidget {
                 statusIcon = `<i class="fa fa-ban text-danger" title="${t.offline}" data-toggle="tooltip"></i>`;
             }
 
-            return `
-                <tr>
-                    <td>${esc(lease.ip)}</td>
-                    <td>${esc(lease.hostname)}</td>
-                    <td class="dd-col-mac">${esc(lease.mac)}</td>
-                    <td class="dd-col-optional">${esc(lease.iface)}</td>
-                    <td>${lease.type === 'static' ? t.static : t.dynamic}</td>
-                    <td class="dd-col-optional">${esc(lease.source)}</td>
-                    <td class="text-center">${statusIcon}</td>
-                </tr>
-            `;
+            const content = {
+                ip: esc(lease.ip),
+                hostname: esc(lease.hostname),
+                mac: esc(lease.mac),
+                manufacturer: lease.randomMac ? `<em class="text-muted">${esc(lease.manufacturer)}</em>` : esc(lease.manufacturer),
+                iface: esc(lease.iface),
+                type: lease.type === 'static' ? t.static : t.dynamic,
+                source: esc(lease.source),
+                online: statusIcon
+            };
+
+            return `<tr>${this.columns.map(col => cell(col, content[col.key])).join('')}</tr>`;
         });
+
+        // Sort indicator on the active column
+        $('#dhcpDashboard .dd-sort-icon').removeClass('fa-sort-asc fa-sort-desc');
+        $(`#dhcpDashboard .dd-sortable[data-sort="${this.sortKey}"] .dd-sort-icon`)
+            .addClass(this.sortAsc ? 'fa-sort-asc' : 'fa-sort-desc');
 
         $('#dhcpDashboard [data-toggle="tooltip"]').tooltip('hide');
         $('#dhcpDashboardMessage').hide();
@@ -306,6 +410,7 @@ export default class DhcpDashboard extends BaseWidget {
 
     showMessage(message) {
         this.cachedData = {};
+        this.leases = [];
         $('#dhcpDashboardTableWrap').hide();
         $('#dhcpDashboardMessage').text(message).show();
     }
@@ -313,14 +418,32 @@ export default class DhcpDashboard extends BaseWidget {
     /* ---------- Helpers ---------- */
 
     /**
-     * Wrapper around ajaxCall: a missing backend (plugin not installed, no ACL) resolves to null
+     * Silent API call: resolves to null on any error.
+     * "global: false" keeps the error out of the OPNsense global ajaxError handler, which would
+     * otherwise pop up "Endpoint not found" for every backend that is not installed.
+     * The CSRF header is still added by the $.ajaxSetup() defaults.
      */
-    async safeAjax(url, data = {}, method = 'GET') {
-        try {
-            return await this.ajaxCall(url, data, method);
-        } catch (error) {
-            return null;
-        }
+    safeAjax(url, postData = null) {
+        return new Promise(resolve => {
+            $.ajax({
+                url: url,
+                type: postData === null ? 'GET' : 'POST',
+                dataType: 'json',
+                contentType: 'application/json',
+                data: postData === null ? undefined : JSON.stringify(postData),
+                timeout: this.timeoutPeriod,
+                global: false,
+                success: response => resolve(response),
+                error: () => resolve(null)
+            });
+        });
+    }
+
+    /**
+     * Locally administered MAC: second hex digit of the first octet is 2, 6, A or E
+     */
+    static isRandomMac(mac) {
+        return /^[0-9a-f][26ae]/i.test(String(mac ?? ''));
     }
 
     /**
@@ -340,7 +463,7 @@ export default class DhcpDashboard extends BaseWidget {
     }
 
     /**
-     * Hostnames are provided by DHCP clients: never inject them as raw HTML
+     * Hostnames and vendors come from client / database data: never inject them as raw HTML
      */
     static escapeHtml(value) {
         return String(value ?? '').replace(/[&<>"']/g, char => ({

@@ -1,6 +1,6 @@
 # os-dhcp-dashboard
 
-Version: 1.0.0
+Version: 1.1.0
 
 DHCP leases widget for the OPNsense dashboard (24.7 and newer), in the spirit of the
 legacy `dHCP_leases.widget.php` by Tonton Jo, which stopped working with the new
@@ -12,16 +12,38 @@ JavaScript dashboard.
   - ISC DHCP v4/v6 (core up to 25.x, `os-isc-dhcp` plugin since 26.1)
   - Kea DHCP v4/v6
   - Dnsmasq DHCP v4/v6
-- Columns: IP address, Hostname, MAC address, Interface, Lease type, Server, Status
+- Columns: IP address, Hostname, MAC address, Manufacturer, Interface, Lease type, Server, Status
+- Sortable: click a column header to sort, click again to reverse (kept while the page is open)
+- Manufacturer: vendor lookup from the OPNsense MAC database (lease data, then ARP/NDP table);
+  random / private MAC addresses (locally administered) are labelled as such
 - Only active leases are shown (expired, declined and released leases are hidden)
 - Online status: provided by ISC, looked up in the ARP (IPv4) / NDP (IPv6) table for Kea and Dnsmasq
 - Widget option: show IPv6 leases (off by default)
 - Sorted by IP address (IPv4 first), refreshed every 30 seconds
-- Interface and Server columns are hidden on narrow widgets, MAC on very narrow ones
+- Manufacturer, Interface and Server columns are hidden on narrow widgets
 
 ## Installation
 
-### Option 1: manual install (quickest)
+### Option 1: quick install from the OPNsense shell
+
+Open a root shell on the firewall (SSH, or console menu option 8), then run:
+
+```sh
+fetch -o /usr/local/opnsense/www/js/widgets/DhcpDashboard.js https://raw.githubusercontent.com/Tontonjo/opnsense/main/os-dhcp-dashboard/src/opnsense/www/js/widgets/DhcpDashboard.js
+fetch -o /usr/local/opnsense/www/js/widgets/Metadata/DhcpDashboard.xml https://raw.githubusercontent.com/Tontonjo/opnsense/main/os-dhcp-dashboard/src/opnsense/www/js/widgets/Metadata/DhcpDashboard.xml
+```
+
+Then in the web interface: reload the dashboard (Ctrl+F5), click the pencil icon,
+**Add widget > DHCP Leases**, and save.
+
+- Update: run the same two commands again.
+- Uninstall:
+
+```sh
+rm -f /usr/local/opnsense/www/js/widgets/DhcpDashboard.js /usr/local/opnsense/www/js/widgets/Metadata/DhcpDashboard.xml
+```
+
+### Option 2: install from a local copy
 
 Copy this folder to the firewall (e.g. with `scp`), then as root:
 
@@ -36,7 +58,7 @@ Reload the dashboard (Ctrl+F5), click the pencil icon, then **Add widget > DHCP 
 Note: files installed manually are not tracked by the package manager. A firmware
 update does not remove them, but reinstall after a major upgrade if the widget disappears.
 
-### Option 2: build a real package (os-dhcp-dashboard)
+### Option 3: build a real package (os-dhcp-dashboard)
 
 On an OPNsense (or FreeBSD build) machine:
 
