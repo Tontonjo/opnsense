@@ -10,17 +10,7 @@ Scripts and files usefull for Opensense
 [![Infomaniak](https://badgen.net/badge/Infomaniak/Affiliated%20link?icon=K)](https://www.infomaniak.com/goto/fr/home?utm_term=6151f412daf35)
 [![Express VPN](https://badgen.net/badge/Express%20VPN/Affiliated%20link?icon=K)](https://www.xvuslink.com/?a_fid=TontonJo)  
 
-### DHCP Leases Widget  
-
-### Installation:
-- Put [dHCP_leases.widget.php](https://github.com/Tontonjo/opnsense/blob/main/usr/local/www/widgets/widgets/dHCP_leases.widget.php) in /usr/local/www/widgets/widgets/
-```shell
-pkg install wget
-```
-```shell
-wget -qO /usr/local/www/widgets/widgets/dHCP_leases.widget.php https://raw.githubusercontent.com/Tontonjo/opnsense/main/usr/local/www/widgets/widgets/dHCP_leases.widget.php
-```
-- Add widget trough Opnsense GUI
+### [DHCP Leases Widget  ](https://github.com/Tontonjo/opnsense/tree/main/os-dhcp-dashboard)
 
 ### To do: But i dont know how:
 - DONE: Mask expired Leases (wich i find useless)
