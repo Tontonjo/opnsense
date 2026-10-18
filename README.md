@@ -11,7 +11,7 @@ Scripts and files usefull for Opensense
 [![Express VPN](https://badgen.net/badge/Express%20VPN/Affiliated%20link?icon=K)](https://www.xvuslink.com/?a_fid=TontonJo)  
 
 ## [GeoIP Database](https://github.com/Tontonjo/opnsense/tree/main/geoip)
-IP address data powered by IPLocate.io
+IP address data powered by IPLocate.io  
 A non official plugin is available here: [opnsense-os-geoip](https://github.com/Tontonjo/opnsense-os-geoip)
 
 ### [DHCP Leases Widget  ](https://github.com/Tontonjo/opnsense/tree/main/os-dhcp-dashboard)
