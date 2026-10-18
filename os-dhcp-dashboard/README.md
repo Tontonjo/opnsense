@@ -6,6 +6,8 @@ DHCP leases widget for the OPNsense dashboard (24.7 and newer), in the spirit of
 legacy `dHCP_leases.widget.php` by Tonton Jo, which stopped working with the new
 JavaScript dashboard.
 
+<img width="518" height="126" alt="image" src="https://github.com/user-attachments/assets/6b12407e-f8f2-4e07-9923-c27456c79285" />
+
 ## Features
 
 - One table for all running DHCP servers:
