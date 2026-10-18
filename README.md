@@ -12,6 +12,6 @@ Scripts and files usefull for Opensense
 
 ## [GeoIP Database](https://github.com/Tontonjo/opnsense/tree/main/geoip)
 IP address data powered by IPLocate.io
-A non official plugin is available [here](https://github.com/Tontonjo/opnsense-os-geoip)
+A non official plugin is available here: [opnsense-os-geoip](https://github.com/Tontonjo/opnsense-os-geoip)
 
 ### [DHCP Leases Widget  ](https://github.com/Tontonjo/opnsense/tree/main/os-dhcp-dashboard)
