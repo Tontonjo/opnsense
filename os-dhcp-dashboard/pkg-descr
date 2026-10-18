@@ -1,0 +1,16 @@
+Dashboard widget listing the active DHCP leases of every running
+DHCP server in a single table: ISC DHCP (v4/v6), Kea DHCP (v4/v6)
+and Dnsmasq DHCP. Columns: IP address, hostname, MAC address,
+interface, lease type, server and online status.
+
+Inspired by the legacy dHCP_leases.widget.php by Tonton Jo.
+
+Plugin Changelog
+================
+
+1.0.0
+
+* Initial release for the JavaScript dashboard (OPNsense 24.7 and newer)
+* Support for ISC DHCP, Kea DHCP and Dnsmasq DHCP
+* Online status from ARP/NDP for Kea and Dnsmasq
+* Optional IPv6 leases
