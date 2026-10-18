@@ -1,6 +1,6 @@
 #!/bin/sh
 # os-dhcp-dashboard - manual installer for the DHCP leases dashboard widget
-# Version: 1.1.0
+# Version: 1.2.0
 #
 # Usage (as root on the OPNsense firewall, from this folder):
 #   sh install.sh            install or update the widget

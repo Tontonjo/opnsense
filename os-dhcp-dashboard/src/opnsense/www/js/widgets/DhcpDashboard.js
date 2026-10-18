@@ -1,6 +1,6 @@
 /*
  * os-dhcp-dashboard - DHCP leases widget for the OPNsense dashboard
- * Version: 1.1.0
+ * Version: 1.2.0
  *
  * Shows the active DHCP leases of every running DHCP server in one table:
  *   - ISC DHCP (v4 / v6)  : core up to 25.x, os-isc-dhcp plugin since 26.1
@@ -38,6 +38,8 @@
 
 /*
  * Changelog
+ *   1.2.0  Columns can be shown / hidden in the widget options, no more overlapping texts
+ *          (auto table layout, horizontal scroll, long texts truncated with full value in tooltip)
  *   1.1.0  Silent backend probing (no more "Endpoint not found" popup when a backend is absent),
  *          sortable columns (click a header), manufacturer column (MAC vendor lookup)
  *   1.0.0  Initial release
@@ -65,17 +67,19 @@ export default class DhcpDashboard extends BaseWidget {
         // Lease lookups trigger several backend scripts, no need to poll every 10s
         this.tickTimeout = 30;
 
-        // Table columns: "optional" columns are hidden on narrow widgets
+        // Available table columns, visibility is selected in the widget options.
+        // "truncate": long free texts are cut with "..." and the full value is shown in a tooltip
         this.columns = [
             { key: 'ip',           label: 'ipaddress' },
-            { key: 'hostname',     label: 'hostname' },
+            { key: 'hostname',     label: 'hostname',     truncate: true },
             { key: 'mac',          label: 'mac' },
-            { key: 'manufacturer', label: 'manufacturer', optional: true },
-            { key: 'iface',        label: 'interface',    optional: true },
+            { key: 'manufacturer', label: 'manufacturer', truncate: true },
+            { key: 'iface',        label: 'interface',    truncate: true },
             { key: 'type',         label: 'leasetype' },
-            { key: 'source',       label: 'source',       optional: true },
+            { key: 'source',       label: 'source' },
             { key: 'online',       label: 'status',       center: true }
         ];
+        this.visibleColumns = this.columns;
 
         // Current sort, changed by clicking a column header (kept while the page is open)
         this.sortKey = 'ip';
@@ -91,27 +95,28 @@ export default class DhcpDashboard extends BaseWidget {
     }
 
     getMarkup() {
-        const t = this.translations;
-        const headers = this.columns.map(col => `
-            <th class="dd-sortable ${col.optional ? 'dd-col-optional' : ''} ${col.center ? 'text-center' : ''}"
-                data-sort="${col.key}">
-                ${t[col.label]} <i class="fa fa-fw dd-sort-icon"></i>
-            </th>`).join('');
-
+        /*
+         * The dashboard stylesheet forces "table-layout: fixed" (equal column widths) and
+         * "word-break: break-all" on every table, which makes texts overflow into the next cell.
+         * Here: automatic layout (each column as wide as its content), no wrapping, and a
+         * horizontal scrollbar when the widget is narrower than the table.
+         */
         return $(`
             <div class="dhcp-dashboard" id="dhcpDashboard">
                 <style>
-                    #dhcpDashboard .dd-table-wrap { overflow-x: auto; }
-                    #dhcpDashboard table { margin-bottom: 0; }
-                    #dhcpDashboard td, #dhcpDashboard th { white-space: nowrap; }
+                    #dhcpDashboard .dd-table-wrap { overflow-x: auto; width: 100%; }
+                    #dhcpDashboard table { table-layout: auto; width: 100%; margin-bottom: 0; }
+                    #dhcpDashboard th, #dhcpDashboard td {
+                        white-space: nowrap; word-break: normal; overflow: hidden; vertical-align: middle;
+                    }
+                    #dhcpDashboard td.dd-truncate { max-width: 200px; text-overflow: ellipsis; }
                     #dhcpDashboard .dd-sortable { cursor: pointer; user-select: none; }
                     #dhcpDashboard .dd-message { padding: 10px; text-align: center; }
-                    #dhcpDashboard.dd-narrow .dd-col-optional { display: none; }
                 </style>
                 <div class="dd-message" id="dhcpDashboardMessage" style="display:none;"></div>
                 <div class="dd-table-wrap" id="dhcpDashboardTableWrap" style="display:none;">
                     <table class="table table-striped table-condensed">
-                        <thead><tr>${headers}</tr></thead>
+                        <thead><tr id="dhcpDashboardHead"></tr></thead>
                         <tbody id="dhcpDashboardBody"></tbody>
                     </table>
                 </div>
@@ -141,6 +146,14 @@ export default class DhcpDashboard extends BaseWidget {
                 ],
                 default: 'no',
                 required: true
+            },
+            columns: {
+                id: 'columns',
+                title: this.translations.columns,
+                type: 'select_multiple',
+                options: this.columns.map(col => ({ value: col.key, label: this.translations[col.label] })),
+                default: this.columns.map(col => col.key),
+                required: true
             }
         };
     }
@@ -150,15 +163,14 @@ export default class DhcpDashboard extends BaseWidget {
         await this.onWidgetTick();
     }
 
-    onWidgetResize(elem, width, height) {
-        // Hide the less important columns on small widgets
-        $('#dhcpDashboard').toggleClass('dd-narrow', width < 620);
-        return true;
-    }
-
     async onWidgetTick() {
         const config = await this.getWidgetConfig();
         const families = config.showIpv6 === 'yes' ? ['v4', 'v6'] : ['v4'];
+
+        // Keep the column order of this.columns; an empty or invalid selection shows every column
+        const selected = Array.isArray(config.columns) ? config.columns : [];
+        const visible = this.columns.filter(col => selected.includes(col.key));
+        this.visibleColumns = visible.length > 0 ? visible : this.columns;
 
         // Query every backend in parallel, each fetcher returns null when the server is not running
         const results = await Promise.all([
@@ -369,10 +381,21 @@ export default class DhcpDashboard extends BaseWidget {
     renderLeases() {
         const t = this.translations;
         const esc = DhcpDashboard.escapeHtml;
+        const columns = this.visibleColumns;
+
+        // A hidden column cannot stay the sort column: fall back to the first visible one
+        if (!columns.some(col => col.key === this.sortKey)) {
+            this.sortKey = columns[0].key;
+            this.sortAsc = true;
+        }
         const leases = [...this.leases].sort((a, b) => this.compareLeases(a, b));
 
-        const cell = (col, content) =>
-            `<td class="${col.optional ? 'dd-col-optional' : ''} ${col.center ? 'text-center' : ''}">${content}</td>`;
+        // Header, with the sort indicator on the active column
+        const header = columns.map(col => {
+            const icon = col.key !== this.sortKey ? '' : (this.sortAsc ? 'fa-sort-asc' : 'fa-sort-desc');
+            return `<th class="dd-sortable ${col.center ? 'text-center' : ''}" data-sort="${col.key}">` +
+                `${t[col.label]} <i class="fa fa-fw ${icon}"></i></th>`;
+        }).join('');
 
         const rows = leases.map(lease => {
             let statusIcon = `<i class="fa fa-question text-muted" title="${t.unknown}" data-toggle="tooltip"></i>`;
@@ -382,27 +405,33 @@ export default class DhcpDashboard extends BaseWidget {
                 statusIcon = `<i class="fa fa-ban text-danger" title="${t.offline}" data-toggle="tooltip"></i>`;
             }
 
-            const content = {
-                ip: esc(lease.ip),
-                hostname: esc(lease.hostname),
-                mac: esc(lease.mac),
-                manufacturer: lease.randomMac ? `<em class="text-muted">${esc(lease.manufacturer)}</em>` : esc(lease.manufacturer),
-                iface: esc(lease.iface),
+            // Plain text value per column (also used as tooltip of truncated cells) and its HTML rendering
+            const text = {
+                ip: lease.ip,
+                hostname: lease.hostname,
+                mac: lease.mac,
+                manufacturer: lease.manufacturer,
+                iface: lease.iface,
                 type: lease.type === 'static' ? t.static : t.dynamic,
-                source: esc(lease.source),
+                source: lease.source
+            };
+            const html = {
+                manufacturer: lease.randomMac ? `<em class="text-muted">${esc(lease.manufacturer)}</em>` : null,
                 online: statusIcon
             };
 
-            return `<tr>${this.columns.map(col => cell(col, content[col.key])).join('')}</tr>`;
+            const cells = columns.map(col => {
+                const content = html[col.key] ?? esc(text[col.key]);
+                const classes = [col.center ? 'text-center' : '', col.truncate ? 'dd-truncate' : ''].join(' ').trim();
+                const title = col.truncate && text[col.key] ? ` title="${esc(text[col.key])}"` : '';
+                return `<td class="${classes}"${title}>${content}</td>`;
+            });
+            return `<tr>${cells.join('')}</tr>`;
         });
-
-        // Sort indicator on the active column
-        $('#dhcpDashboard .dd-sort-icon').removeClass('fa-sort-asc fa-sort-desc');
-        $(`#dhcpDashboard .dd-sortable[data-sort="${this.sortKey}"] .dd-sort-icon`)
-            .addClass(this.sortAsc ? 'fa-sort-asc' : 'fa-sort-desc');
 
         $('#dhcpDashboard [data-toggle="tooltip"]').tooltip('hide');
         $('#dhcpDashboardMessage').hide();
+        $('#dhcpDashboardHead').html(header);
         $('#dhcpDashboardBody').html(rows.join(''));
         $('#dhcpDashboardTableWrap').show();
         $('#dhcpDashboard [data-toggle="tooltip"]').tooltip({ container: 'body' });

@@ -2,12 +2,17 @@ Dashboard widget listing the active DHCP leases of every running
 DHCP server in a single table: ISC DHCP (v4/v6), Kea DHCP (v4/v6)
 and Dnsmasq DHCP. Columns: IP address, hostname, MAC address,
 manufacturer, interface, lease type, server and online status.
-All columns are sortable.
+All columns are sortable and can be shown or hidden in the widget options.
 
 Inspired by the legacy dHCP_leases.widget.php by Tonton Jo.
 
 Plugin Changelog
 ================
+
+1.2.0
+
+* Show / hide columns in the widget options
+* Fix overlapping texts (long values truncated, horizontal scroll on narrow widgets)
 
 1.1.0
 

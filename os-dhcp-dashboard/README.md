@@ -1,6 +1,6 @@
 # os-dhcp-dashboard
 
-Version: 1.1.0
+Version: 1.2.0
 
 DHCP leases widget for the OPNsense dashboard (24.7 and newer), in the spirit of the
 legacy `dHCP_leases.widget.php` by Tonton Jo, which stopped working with the new
@@ -18,9 +18,12 @@ JavaScript dashboard.
   random / private MAC addresses (locally administered) are labelled as such
 - Only active leases are shown (expired, declined and released leases are hidden)
 - Online status: provided by ISC, looked up in the ARP (IPv4) / NDP (IPv6) table for Kea and Dnsmasq
-- Widget option: show IPv6 leases (off by default)
+- Widget options (dashboard pencil icon at the top right to enter edit mode, then the small pencil
+  in the widget title bar, next to the X): show IPv6 leases (off by default),
+  columns to display (all by default)
 - Sorted by IP address (IPv4 first), refreshed every 30 seconds
-- Manufacturer, Interface and Server columns are hidden on narrow widgets
+- No overlapping texts: long hostnames / vendors / interfaces are truncated with "..." (full value
+  on mouse over), and the table scrolls horizontally when the widget is too narrow
 
 ## Installation
 

@@ -1,6 +1,6 @@
 <!--
     os-dhcp-dashboard - widget metadata
-    Version: 1.1.0
+    Version: 1.2.0
 
     No endpoint is listed on purpose: the widget combines several optional
     backends (ISC plugin, Kea, Dnsmasq). Listing them would hide the widget
@@ -31,6 +31,7 @@
             <unknown>Unknown</unknown>
             <nobackend>No running DHCP server found (ISC, Kea or Dnsmasq).</nobackend>
             <noleases>No active leases found.</noleases>
+            <columns>Columns to display</columns>
             <showipv6>Show IPv6 leases</showipv6>
             <yes>Yes</yes>
             <no>No</no>
